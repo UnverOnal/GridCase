@@ -2,14 +2,14 @@ using UnityEngine;
 
 namespace GridSystem
 {
-    public class Node
+    public class Cell
     {
         public GameObject GameObject { get; private set; }
 
         private Coordinate _coordinate;
 
-        private float _originalWidth;
-        private float _size;
+        private float _originalExtent;
+        private float _extent;
 
         private Vector3 _originalScale;
 
@@ -18,32 +18,39 @@ namespace GridSystem
             _coordinate = coordinate;
 
             GameObject = gameObject;
+            if(!GameObject.activeInHierarchy)GameObject.SetActive(true);
 
-            _originalWidth = GameObject.GetComponent<SpriteRenderer>().sprite.bounds.size.x;
-            _size = _originalWidth;
+            _originalExtent = GameObject.GetComponent<SpriteRenderer>().sprite.bounds.size.x;
+            _extent = _originalExtent;
 
             _originalScale = GameObject.transform.localScale;
         }
 
         public void SetPosition(Vector2 offset, float distance)
         {
-            var x = _coordinate.Row * _size 
+            var x = _coordinate.Row * _extent 
                     + (_coordinate.Row + 1) * distance
-                    + _size / 2f;
-            var y = _coordinate.Column * _size
+                    + _extent / 2f;
+            var y = _coordinate.Column * _extent
                     + (_coordinate.Column + 1) * distance
-                    + _size / 2f;
+                    + _extent / 2f;
             var position = new Vector3(x, -y) + (Vector3)offset;
             
             GameObject.transform.position = position;
         }
 
         //Adjusts scale based on size given
-        public void SetSize(float size)
+        public void SetExtent(float extent)
         {
-            _size = size;
+            _extent = extent;
 
-            GameObject.transform.localScale = _originalScale * (_size / _originalWidth);
+            GameObject.transform.localScale = _originalScale * (_extent / _originalExtent);
+        }
+
+        public void Reset()
+        {
+            GameObject.transform.localScale = Vector3.one;
+            GameObject.SetActive(false);
         }
     }
 

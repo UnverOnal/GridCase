@@ -7,13 +7,11 @@ namespace GridSystem
 {
     public class Grid
     {
-        private readonly int _initialSize;
-
         private readonly float _distance;
 
-        private readonly ObjectPool<Node> _nodePool;
+        private readonly ObjectPool<Cell> _cellPool;
         
-        private readonly Dictionary<Coordinate, Node> _gridNodes;
+        private readonly Dictionary<Coordinate, Cell> _girdCells;
 
         private readonly Vector2 _originPoint;
         private Vector2 _cellBounds;
@@ -22,28 +20,27 @@ namespace GridSystem
 
         private readonly Transform _gridParent;
 
-        public Grid(GridData gridData, Transform gridParent)
+        public Grid(float distance, GameObject cellPrefab, Transform gridParent)
         {
-            _initialSize = gridData.initialSize;
-            _distance = gridData.distance;
+            _distance = distance;
             
-            _nodePool = new ObjectPool<Node>();
+            _cellPool = new ObjectPool<Cell>();
 
-            _gridNodes = new Dictionary<Coordinate, Node>();
+            _girdCells = new Dictionary<Coordinate, Cell>();
 
             _originPoint = GetOrigin();
 
-            _cellPrefab = gridData.cellPrefab;
+            _cellPrefab = cellPrefab;
 
             _gridParent = gridParent;
         }
 
-        public void CreateGrid()
+        public void CreateGrid(int gridSize)
         {
-            var size = CalculateSize();
-            for (int i = 0; i < _initialSize; i++)
+            var extent = CalculateCellExtent(gridSize);
+            for (int i = 0; i < gridSize; i++)
             {
-                for (int j = 0; j < _initialSize; j++)
+                for (int j = 0; j < gridSize; j++)
                 { 
                     var coordinate = new Coordinate
                     {
@@ -51,33 +48,44 @@ namespace GridSystem
                         Column = j
                     };
                     
-                    var node = SetNode(coordinate, size);
-                    _gridNodes.Add(coordinate, node);
+                    var cell = SetCell(coordinate, extent);
+                    _girdCells.Add(coordinate, cell);
                 }
             }
         }
 
-        private Node SetNode(Coordinate coordinate, float size)
+        public void Clear()
         {
-            var node = _nodePool.GetObject();
-            var cellObject = node.GameObject ? node.GameObject : Object.Instantiate(_cellPrefab, parent:_gridParent);
+            foreach (var value in _girdCells.Values)
+            {
+                value.Reset();
+                _cellPool.ReturnObject(value);
+            }
             
-            node.Set(coordinate, cellObject);
-            node.SetSize(size);
-            node.SetPosition(_originPoint, _distance);
+            _girdCells.Clear();
+        }
 
-            return node;
+        private Cell SetCell(Coordinate coordinate, float extent)
+        {
+            var cell = _cellPool.GetObject();
+            var cellObject = cell.GameObject ? cell.GameObject : Object.Instantiate(_cellPrefab, parent:_gridParent);
+
+            cell.Set(coordinate, cellObject);
+            cell.SetExtent(extent);
+            cell.SetPosition(_originPoint, _distance);
+
+            return cell;
         }
         
-        private Node GetNode(Coordinate coordinate)
+        private Cell GetCell(Coordinate coordinate)
         {
-            if (_gridNodes.TryGetValue(coordinate, out Node value))
+            if (_girdCells.TryGetValue(coordinate, out Cell value))
                 return value;
 
-            throw new ArgumentNullException(nameof(coordinate), "Node not found for the given coordinate.");
+            throw new ArgumentNullException(nameof(coordinate), "Cell not found for the given coordinate.");
         }
 
-        //Returns a starting or origin point 
+        //Returns a starting or origin point for starting grid
         private Vector2 GetOrigin()
         {
             var screenOriginPoint = new Vector2(0f, Screen.height);
@@ -89,16 +97,16 @@ namespace GridSystem
         }
 
         //Calculates, based on screen size and distance that should be in between cells
-        private float CalculateSize()
+        private float CalculateCellExtent(int gridSize)
         {
             var cellSprite = _cellPrefab.GetComponent<SpriteRenderer>().sprite;
             var pixelPerUnit = cellSprite.pixelsPerUnit;
             
-            var totalDistance = (_initialSize + 1) * _distance;
+            var totalDistance = (gridSize + 1) * _distance;
             var convertedScreenWidth = Screen.width / pixelPerUnit;
-            var width = (convertedScreenWidth - totalDistance) / _initialSize;
+            var extent = (convertedScreenWidth - totalDistance) / gridSize;
 
-            return width;
+            return extent;
         }
     }
 }
