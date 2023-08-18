@@ -21,6 +21,7 @@ namespace DI
             builder.RegisterComponent(gridUiResources);
 
             builder.Register<GridManager>(Lifetime.Singleton);
+            builder.Register<InputManager>(Lifetime.Singleton);
         }
     }
 }
