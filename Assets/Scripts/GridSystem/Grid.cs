@@ -11,7 +11,7 @@ namespace GridSystem
 
         private readonly ObjectPool<Cell> _cellPool;
         
-        private readonly Dictionary<Coordinate, Cell> _girdCells;
+        private readonly Dictionary<GameObject, Cell> _girdCells;
 
         private readonly Vector2 _originPoint;
         private Vector2 _cellBounds;
@@ -26,12 +26,11 @@ namespace GridSystem
             
             _cellPool = new ObjectPool<Cell>();
 
-            _girdCells = new Dictionary<Coordinate, Cell>();
+            _girdCells = new Dictionary<GameObject, Cell>();
 
             _originPoint = GetOrigin();
 
             _cellPrefab = cellPrefab;
-
             _gridParent = gridParent;
         }
 
@@ -49,7 +48,7 @@ namespace GridSystem
                     };
                     
                     var cell = SetCell(coordinate, extent);
-                    _girdCells.Add(coordinate, cell);
+                    _girdCells.Add(cell.GameObject, cell);
                 }
             }
         }
@@ -65,6 +64,16 @@ namespace GridSystem
             _girdCells.Clear();
         }
 
+        public Cell GetCell(GameObject cellObject)
+        {
+            Cell cell = null;
+            
+            if (_girdCells.TryGetValue(cellObject, out var value))
+                cell = value;
+
+            return cell;
+        }
+
         private Cell SetCell(Coordinate coordinate, float extent)
         {
             var cell = _cellPool.GetObject();
@@ -76,16 +85,8 @@ namespace GridSystem
 
             return cell;
         }
-        
-        private Cell GetCell(Coordinate coordinate)
-        {
-            if (_girdCells.TryGetValue(coordinate, out Cell value))
-                return value;
 
-            throw new ArgumentNullException(nameof(coordinate), "Cell not found for the given coordinate.");
-        }
-
-        //Returns a starting or origin point for starting grid
+        //Returns a starting or origin point for starting grid from.
         private Vector2 GetOrigin()
         {
             var screenOriginPoint = new Vector2(0f, Screen.height);

@@ -12,10 +12,16 @@ namespace GridSystem
 
         private readonly TMP_InputField _inputField;
         private readonly InputManager _inputManager;
-    
+
+        private readonly GridData _gridData;
+
+        private readonly MatchChecker _matchChecker;
+
+
         [Inject]
         public GridManager(GridData gridData, GridUiResources gridUiResources, InputManager inputManager)
         {
+            _gridData = gridData;
             _grid = new Grid(gridData.distance, gridData.cellPrefab, new GameObject("GridCells").transform);
 
             _inputManager = inputManager;
@@ -26,6 +32,7 @@ namespace GridSystem
             button.onClick.AddListener(Rebuild);
             
             _grid.CreateGrid(gridData.initialSize);
+            _matchChecker = new MatchChecker(gridUiResources.resultText);
         }
 
         private void Rebuild()
@@ -34,15 +41,25 @@ namespace GridSystem
             {
                 _grid.Clear();
                 _grid.CreateGrid(size);
+                _matchChecker.Reset();
             }
         }
 
-        private void SetCross(GameObject cell)
+        private void SetCross(GameObject cellObject)
         {
-            if(!cell)
+            if (!cellObject)
                 return;
-            
-            cell.transform.localScale *= 0.5f;
+
+            var cell = _grid.GetCell(cellObject);
+            cell.SetSprite(_gridData.cross);
+
+            CheckForAMatch(cell);
+        }
+
+        private void CheckForAMatch(Cell cell)
+        {
+            _matchChecker.AddCrossedCell(cell);
+            _matchChecker.CheckForAMatch(cell);
         }
 
         public void Dispose()

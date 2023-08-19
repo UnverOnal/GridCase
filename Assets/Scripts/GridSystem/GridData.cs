@@ -8,5 +8,6 @@ namespace GridSystem
         public GameObject cellPrefab;
         public int initialSize;
         public float distance;
+        public Sprite cross;
     }
 }
