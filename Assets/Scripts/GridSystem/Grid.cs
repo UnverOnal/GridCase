@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace GridSystem
 {
@@ -10,7 +8,7 @@ namespace GridSystem
         private readonly float _distance;
 
         private readonly ObjectPool<Cell> _cellPool;
-        
+
         private readonly Dictionary<GameObject, Cell> _girdCells;
 
         private readonly Vector2 _originPoint;
@@ -23,7 +21,7 @@ namespace GridSystem
         public Grid(float distance, GameObject cellPrefab, Transform gridParent)
         {
             _distance = distance;
-            
+
             _cellPool = new ObjectPool<Cell>();
 
             _girdCells = new Dictionary<GameObject, Cell>();
@@ -37,19 +35,17 @@ namespace GridSystem
         public void CreateGrid(int gridSize)
         {
             var extent = CalculateCellExtent(gridSize);
-            for (int i = 0; i < gridSize; i++)
+            for (var i = 0; i < gridSize; i++)
+            for (var j = 0; j < gridSize; j++)
             {
-                for (int j = 0; j < gridSize; j++)
-                { 
-                    var coordinate = new Coordinate
-                    {
-                        Row = i,
-                        Column = j
-                    };
-                    
-                    var cell = SetCell(coordinate, extent);
-                    _girdCells.Add(cell.GameObject, cell);
-                }
+                var coordinate = new Coordinate
+                {
+                    Row = i,
+                    Column = j
+                };
+
+                var cell = SetCell(coordinate, extent);
+                _girdCells.Add(cell.GameObject, cell);
             }
         }
 
@@ -60,14 +56,14 @@ namespace GridSystem
                 value.Reset();
                 _cellPool.ReturnObject(value);
             }
-            
+
             _girdCells.Clear();
         }
 
         public Cell GetCell(GameObject cellObject)
         {
             Cell cell = null;
-            
+
             if (_girdCells.TryGetValue(cellObject, out var value))
                 cell = value;
 
@@ -77,7 +73,7 @@ namespace GridSystem
         private Cell SetCell(Coordinate coordinate, float extent)
         {
             var cell = _cellPool.GetObject();
-            var cellObject = cell.GameObject ? cell.GameObject : Object.Instantiate(_cellPrefab, parent:_gridParent);
+            var cellObject = cell.GameObject ? cell.GameObject : Object.Instantiate(_cellPrefab, _gridParent);
 
             cell.Set(coordinate, cellObject);
             cell.SetExtent(extent);
@@ -102,7 +98,7 @@ namespace GridSystem
         {
             var cellSprite = _cellPrefab.GetComponent<SpriteRenderer>().sprite;
             var pixelPerUnit = cellSprite.pixelsPerUnit;
-            
+
             var totalDistance = (gridSize + 1) * _distance;
             var convertedScreenWidth = Screen.width / pixelPerUnit;
             var extent = (convertedScreenWidth - totalDistance) / gridSize;
