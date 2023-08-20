@@ -29,12 +29,12 @@ namespace GridSystem
             GameObject = gameObject;
             if(!GameObject.activeInHierarchy)GameObject.SetActive(true);
 
+            _originalScale = GameObject.transform.localScale;
+            
             _spriteRenderer = GameObject.GetComponent<SpriteRenderer>();
             _originalSprite = _spriteRenderer.sprite;
             _originalExtent = _originalSprite.bounds.size.x;
             _extent = _originalExtent;
-
-            _originalScale = GameObject.transform.localScale;
 
             _connection ??= new Connection(this);
 
@@ -46,7 +46,7 @@ namespace GridSystem
             var x = Coordinate.Row * _extent 
                     + (Coordinate.Row + 1) * distance
                     + _extent / 2f;
-            var y = Coordinate.Column * _extent
+            var y = Coordinate.Column * _extent 
                     + (Coordinate.Column + 1) * distance
                     + _extent / 2f;
             var position = new Vector3(x, -y) + (Vector3)offset;
@@ -58,8 +58,7 @@ namespace GridSystem
         public void SetExtent(float extent)
         {
             _extent = extent;
-
-            GameObject.transform.localScale = _originalScale * (_extent / _originalExtent);
+            GameObject.transform.localScale = _originalScale * CalculateCellSize(_extent);
         }
 
         public void Reset()
@@ -90,6 +89,14 @@ namespace GridSystem
         public int GetConnectedCellCount(Cell exception = null)
         {
             return _connection.GetConnectedCellCount(exception);
+        }
+        
+        private float CalculateCellSize(float extent)
+        {
+            var cellSpriteSize = _originalSprite.bounds.size.x;
+
+            var size = extent / cellSpriteSize;
+            return size;
         }
     }
 

@@ -9,5 +9,6 @@ namespace GridSystem
         public int initialSize;
         public float distance;
         public Sprite cross;
+        public Vector2 baseResolution;
     }
 }

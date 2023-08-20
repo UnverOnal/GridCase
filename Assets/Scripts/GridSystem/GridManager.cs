@@ -22,7 +22,7 @@ namespace GridSystem
         public GridManager(GridData gridData, GridUiResources gridUiResources, InputManager inputManager)
         {
             _gridData = gridData;
-            _grid = new Grid(gridData.distance, gridData.cellPrefab, new GameObject("GridCells").transform);
+            _grid = new Grid(gridData.distance, gridData.cellPrefab, new GameObject("GridCells").transform, gridData.baseResolution);
 
             _inputManager = inputManager;
             _inputManager.OnClick += SetCross;

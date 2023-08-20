@@ -11,6 +11,7 @@ namespace GridSystem
 
         private readonly Dictionary<GameObject, Cell> _girdCells;
 
+        private readonly Vector2 _baseScreen;
         private readonly Vector2 _originPoint;
         private Vector2 _cellBounds;
 
@@ -18,7 +19,7 @@ namespace GridSystem
 
         private readonly Transform _gridParent;
 
-        public Grid(float distance, GameObject cellPrefab, Transform gridParent)
+        public Grid(float distance, GameObject cellPrefab, Transform gridParent, Vector2 baseScreen)
         {
             _distance = distance;
 
@@ -30,6 +31,8 @@ namespace GridSystem
 
             _cellPrefab = cellPrefab;
             _gridParent = gridParent;
+            
+            _baseScreen = baseScreen;
         }
 
         public void CreateGrid(int gridSize)
@@ -77,7 +80,7 @@ namespace GridSystem
 
             cell.Set(coordinate, cellObject);
             cell.SetExtent(extent);
-            cell.SetPosition(_originPoint, _distance);
+            cell.SetPosition(_originPoint, ConvertBasedOnScreen(_distance));
 
             return cell;
         }
@@ -100,10 +103,16 @@ namespace GridSystem
             var pixelPerUnit = cellSprite.pixelsPerUnit;
 
             var totalDistance = (gridSize + 1) * _distance;
-            var convertedScreenWidth = Screen.width / pixelPerUnit;
+            var convertedScreenWidth = _baseScreen.x / pixelPerUnit;
             var extent = (convertedScreenWidth - totalDistance) / gridSize;
-
-            return extent;
+            
+            return ConvertBasedOnScreen(extent);
+        }
+        
+        //Converts sprite extent value based on base and current Screen.
+        private float ConvertBasedOnScreen(float valueToConvert)
+        {
+            return valueToConvert * ((float)Screen.width / Screen.height) / (_baseScreen.x / _baseScreen.y);
         }
     }
 }
